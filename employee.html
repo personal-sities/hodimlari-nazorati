@@ -1,49 +1,736 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Employee</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hodim paneli | Nazorat tizimi</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-<style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #162033;
+      --muted: #6b7280;
+      --line: #e6ebf2;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf3;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
 
-body{
-font-family:Arial;
-background:#f1f5f9;
-text-align:center;
-padding-top:100px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-h1{
-color:#1e293b;
-}
+    .wrapper {
+      min-height: 100vh;
+      padding: 24px;
+    }
 
-button{
-padding:15px 30px;
-margin:10px;
-border:none;
-border-radius:10px;
-font-size:16px;
-cursor:pointer;
-color:white;
-}
+    .topbar {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
 
-.start{background:#22c55e;}
-.lunch{background:#f59e0b;}
-.finish{background:#ef4444;}
+    .topbar h1 {
+      font-size: 28px;
+    }
 
-</style>
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 18px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .btn-start {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-start:hover {
+      filter: brightness(0.95);
+    }
+
+    .btn-lunch {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-lunch:hover {
+      filter: brightness(0.95);
+    }
+
+    .btn-finish {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-finish:hover {
+      filter: brightness(0.95);
+    }
+
+    .btn-light {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .btn-light:hover {
+      background: #f8fafc;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .panel-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .badge-blue {
+      background: var(--soft-blue);
+      color: var(--primary);
+    }
+
+    .badge-green {
+      background: var(--soft-green);
+      color: var(--success);
+    }
+
+    .badge-yellow {
+      background: var(--soft-yellow);
+      color: #b45309;
+    }
+
+    .badge-red {
+      background: var(--soft-red);
+      color: var(--danger);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .timer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .timer-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      background: #fafcff;
+    }
+
+    .timer-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .timer-value {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .timer-sub {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .stat-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .stat-box h4 {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat-box p {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input, select {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    thead {
+      background: #f8fafc;
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions,
+      .timer-grid,
+      .mini-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrapper">
+    <div class="topbar">
+      <h1>Hodim paneli</h1>
+      <div class="top-right">
+        <span id="todayText"></span>
+        <button class="btn btn-light" onclick="logout()">Chiqish</button>
+      </div>
+    </div>
 
-<h1>Hodim Paneli</h1>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-title">Bugungi ish jarayoni</div>
 
-<button class="start">Ishni boshlash</button>
+        <div class="status-row">
+          <div class="badge badge-blue" id="currentMonthBadge">Joriy oy</div>
+          <div class="badge badge-green" id="workStatusBadge">Holat: Boshlanmagan</div>
+          <div class="badge badge-yellow" id="lateBadge">Kechikish: 0 daqiqa</div>
+        </div>
 
-<button class="lunch">Tushlik</button>
+        <div class="actions">
+          <button class="btn btn-start" onclick="startWork()">Ishni boshlash</button>
+          <button class="btn btn-lunch" onclick="toggleLunch()">Tushlik vaqti</button>
+          <button class="btn btn-finish" onclick="finishWork()">Ishni yakunlash</button>
+        </div>
 
-<button class="finish">Ishni yakunlash</button>
+        <div class="timer-grid">
+          <div class="timer-card">
+            <div class="timer-label">Ish vaqti</div>
+            <div class="timer-value" id="workTimer">00:00:00</div>
+            <div class="timer-sub">Ish boshlanganda ishlaydi, tushlikda pauza bo‘ladi</div>
+          </div>
 
+          <div class="timer-card">
+            <div class="timer-label">Tushlik vaqti</div>
+            <div class="timer-value" id="lunchTimer">00:00:00</div>
+            <div class="timer-sub">Faqat tushlik vaqtida yuradi</div>
+          </div>
+        </div>
+
+        <div class="hint">
+          Yangi kun boshlanganida bugungi vaqtlar avtomatik 0 ga tushadi.
+          O‘tgan kunlar esa shu oyning tarixida saqlanadi.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Bugungi ma'lumot</div>
+
+        <div class="mini-stats">
+          <div class="stat-box">
+            <h4>Ish boshlagan vaqt</h4>
+            <p id="startedAtText">-</p>
+          </div>
+
+          <div class="stat-box">
+            <h4>Ish tugagan vaqt</h4>
+            <p id="finishedAtText">-</p>
+          </div>
+
+          <div class="stat-box">
+            <h4>Tushlik boshlangan</h4>
+            <p id="lunchStartedText">-</p>
+          </div>
+
+          <div class="stat-box">
+            <h4>Tushlik tugagan</h4>
+            <p id="lunchEndedText">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="history-head">
+        <div class="panel-title" style="margin-bottom:0;">Oy bo‘yicha tarix</div>
+
+        <div class="filters">
+          <input type="month" id="monthFilter" onchange="renderHistory()" />
+          <button class="btn btn-light" onclick="setCurrentMonth()">Joriy oy</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Sana</th>
+              <th>Ish boshlagan</th>
+              <th>Tushlik boshlangan</th>
+              <th>Tushlik tugagan</th>
+              <th>Ish tugagan</th>
+              <th>Kechikish</th>
+              <th>Ish vaqti</th>
+              <th>Tushlik vaqti</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="hint">
+        Bu bo‘limda faqat tanlangan oy ma’lumotlari chiqadi. Oy yangilanganda yangi oy tarixlari alohida ko‘rinadi.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "employee_attendance_demo_v1";
+    let appData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    let timerInterval = null;
+
+    function getNow() {
+      return new Date();
+    }
+
+    function getTodayString() {
+      const d = getNow();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function getCurrentMonthString() {
+      const d = getNow();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function pad(num) {
+      return String(num).padStart(2, "0");
+    }
+
+    function formatClock(totalSeconds) {
+      const sec = Math.max(0, Math.floor(totalSeconds));
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function formatDateHuman(dateStr) {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("uz-UZ", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function formatTimeHuman(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function ensureTodayRecord() {
+      const today = getTodayString();
+
+      if (!appData[today]) {
+        appData[today] = {
+          date: today,
+          workSeconds: 0,
+          lunchSeconds: 0,
+          isWorking: false,
+          isLunch: false,
+          isFinished: false,
+          startedAt: null,
+          finishedAt: null,
+          lunchStartedAt: null,
+          lunchEndedAt: null,
+          lateMinutes: 0,
+          lastTick: null
+        };
+        saveData();
+      }
+
+      return appData[today];
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    function calculateLiveSeconds(record) {
+      const now = Date.now();
+      let workSeconds = record.workSeconds || 0;
+      let lunchSeconds = record.lunchSeconds || 0;
+
+      if (record.lastTick && !record.isFinished) {
+        const diff = Math.floor((now - new Date(record.lastTick).getTime()) / 1000);
+        if (diff > 0) {
+          if (record.isWorking && !record.isLunch) {
+            workSeconds += diff;
+          } else if (record.isLunch) {
+            lunchSeconds += diff;
+          }
+        }
+      }
+
+      return { workSeconds, lunchSeconds };
+    }
+
+    function commitRunningTime() {
+      const record = ensureTodayRecord();
+      if (!record.lastTick || record.isFinished) return;
+
+      const now = Date.now();
+      const last = new Date(record.lastTick).getTime();
+      const diff = Math.floor((now - last) / 1000);
+
+      if (diff > 0) {
+        if (record.isWorking && !record.isLunch) {
+          record.workSeconds += diff;
+        } else if (record.isLunch) {
+          record.lunchSeconds += diff;
+        }
+      }
+
+      record.lastTick = new Date().toISOString();
+      saveData();
+    }
+
+    function getLateMinutes(dateObj) {
+      const startLimit = new Date(dateObj);
+      startLimit.setHours(9, 0, 0, 0);
+
+      if (dateObj.getTime() <= startLimit.getTime()) return 0;
+      return Math.floor((dateObj.getTime() - startLimit.getTime()) / 60000);
+    }
+
+    function updateStatus() {
+      const record = ensureTodayRecord();
+      let statusText = "Holat: Boshlanmagan";
+
+      if (record.isFinished) {
+        statusText = "Holat: Ish yakunlangan";
+      } else if (record.isLunch) {
+        statusText = "Holat: Tushlik vaqti";
+      } else if (record.isWorking) {
+        statusText = "Holat: Ish jarayonida";
+      }
+
+      document.getElementById("workStatusBadge").textContent = statusText;
+      document.getElementById("lateBadge").textContent = `Kechikish: ${record.lateMinutes || 0} daqiqa`;
+      document.getElementById("startedAtText").textContent = formatTimeHuman(record.startedAt);
+      document.getElementById("finishedAtText").textContent = formatTimeHuman(record.finishedAt);
+      document.getElementById("lunchStartedText").textContent = formatTimeHuman(record.lunchStartedAt);
+      document.getElementById("lunchEndedText").textContent = formatTimeHuman(record.lunchEndedAt);
+    }
+
+    function updateTimers() {
+      const record = ensureTodayRecord();
+      const live = calculateLiveSeconds(record);
+
+      document.getElementById("workTimer").textContent = formatClock(live.workSeconds);
+      document.getElementById("lunchTimer").textContent = formatClock(live.lunchSeconds);
+      updateStatus();
+    }
+
+    function startWork() {
+      const record = ensureTodayRecord();
+
+      if (record.isFinished) {
+        alert("Bugungi ish allaqachon yakunlangan.");
+        return;
+      }
+
+      if (!record.startedAt) {
+        const now = getNow();
+        record.startedAt = now.toISOString();
+        record.lateMinutes = getLateMinutes(now);
+      }
+
+      if (record.isLunch) {
+        record.isLunch = false;
+        record.lunchEndedAt = new Date().toISOString();
+      }
+
+      record.isWorking = true;
+      record.lastTick = new Date().toISOString();
+      saveData();
+      updateTimers();
+      renderHistory();
+    }
+
+    function toggleLunch() {
+      const record = ensureTodayRecord();
+
+      if (!record.startedAt) {
+        alert("Avval ishni boshlang.");
+        return;
+      }
+
+      if (record.isFinished) {
+        alert("Bugungi ish yakunlangan.");
+        return;
+      }
+
+      commitRunningTime();
+
+      if (!record.isLunch) {
+        record.isWorking = false;
+        record.isLunch = true;
+        record.lunchStartedAt = new Date().toISOString();
+        record.lastTick = new Date().toISOString();
+      } else {
+        record.isLunch = false;
+        record.isWorking = true;
+        record.lunchEndedAt = new Date().toISOString();
+        record.lastTick = new Date().toISOString();
+      }
+
+      saveData();
+      updateTimers();
+      renderHistory();
+    }
+
+    function finishWork() {
+      const record = ensureTodayRecord();
+
+      if (!record.startedAt) {
+        alert("Avval ishni boshlang.");
+        return;
+      }
+
+      if (record.isFinished) {
+        alert("Bugungi ish allaqachon yakunlangan.");
+        return;
+      }
+
+      commitRunningTime();
+
+      if (record.isLunch) {
+        record.isLunch = false;
+        if (!record.lunchEndedAt) {
+          record.lunchEndedAt = new Date().toISOString();
+        }
+      }
+
+      record.isWorking = false;
+      record.isFinished = true;
+      record.finishedAt = new Date().toISOString();
+      record.lastTick = null;
+
+      saveData();
+      updateTimers();
+      renderHistory();
+    }
+
+    function getMonthRecords(monthStr) {
+      return Object.values(appData)
+        .filter(item => item.date && item.date.startsWith(monthStr))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function getDayStatus(item) {
+      if (item.isFinished) return "Yakunlangan";
+      if (item.isLunch) return "Tushlikda";
+      if (item.isWorking) return "Ish jarayonida";
+      if (item.startedAt) return "Boshlangan";
+      return "Boshlanmagan";
+    }
+
+    function renderHistory() {
+      const monthStr = document.getElementById("monthFilter").value || getCurrentMonthString();
+      const tbody = document.getElementById("historyTableBody");
+      const rows = getMonthRecords(monthStr);
+
+      if (!rows.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align:center; color:#6b7280;">Bu oy uchun ma'lumot yo‘q</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${formatDateHuman(item.date)}</td>
+          <td>${formatTimeHuman(item.startedAt)}</td>
+          <td>${formatTimeHuman(item.lunchStartedAt)}</td>
+          <td>${formatTimeHuman(item.lunchEndedAt)}</td>
+          <td>${formatTimeHuman(item.finishedAt)}</td>
+          <td>${item.lateMinutes ? item.lateMinutes + " daqiqa" : "-"}</td>
+          <td>${formatClock(item.workSeconds || 0)}</td>
+          <td>${formatClock(item.lunchSeconds || 0)}</td>
+          <td>${getDayStatus(item)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function setCurrentMonth() {
+      document.getElementById("monthFilter").value = getCurrentMonthString();
+      renderHistory();
+    }
+
+    function logout() {
+      location.href = "login.html";
+    }
+
+    function startTicker() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        updateTimers();
+      }, 1000);
+    }
+
+    function init() {
+      ensureTodayRecord();
+      document.getElementById("todayText").textContent = "Bugun: " + formatDateHuman(getTodayString());
+      document.getElementById("currentMonthBadge").textContent = "Joriy oy: " + getCurrentMonthString();
+      document.getElementById("monthFilter").value = getCurrentMonthString();
+      updateTimers();
+      renderHistory();
+      startTicker();
+    }
+
+    init();
+  </script>
 </body>
 </html>
