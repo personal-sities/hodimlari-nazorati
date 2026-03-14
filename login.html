@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+
+<body>
+
+<h2>Login</h2>
+
+<input id="email" placeholder="email">
+<input id="password" type="password" placeholder="password">
+
+<button onclick="login()">Login</button>
+
+<script>
+
+const supabase = supabase.createClient(
+"SUPABASE_URL",
+"SUPABASE_ANON_KEY"
+)
+
+async function login(){
+
+let email = document.getElementById("email").value
+let password = document.getElementById("password").value
+
+const {data,error} = await supabase.auth.signInWithPassword({
+email:email,
+password:password
+})
+
+if(error){
+alert(error.message)
+return
+}
+
+const {data:emp} = await supabase
+.from("employees")
+.select("*")
+.eq("email",email)
+.single()
+
+if(emp.role=="admin"){
+window.location="admin.html"
+}else{
+window.location="employee.html"
+}
+
+}
+
+</script>
+
+</body>
+</html>
