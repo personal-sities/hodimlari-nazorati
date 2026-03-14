@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Employee Panel</title>
+</head>
+
+<body>
+
+<h2>Hodim paneli</h2>
+
+<button onclick="startWork()">Ishni boshlash</button>
+
+<button id="lunchBtn" onclick="lunch()">Tushlik vaqtini boshlash</button>
+
+<button onclick="finishWork()">Ishni yakunlash</button>
+
+<h3>Ish vaqti: <span id="workTime">0</span></h3>
+<h3>Tushlik vaqti: <span id="lunchTime">0</span></h3>
+
+<script>
+
+let startTime
+let lunchStart
+let workTimer
+let lunchTimer
+let workSeconds=0
+let lunchSeconds=0
+
+function startWork(){
+
+startTime = new Date()
+
+if(startTime.getHours() >= 9){
+
+let late = (startTime.getHours()-9)*60 + startTime.getMinutes()
+
+alert("Kechikish: "+late+" daqiqa")
+
+}
+
+workTimer=setInterval(()=>{
+workSeconds++
+document.getElementById("workTime").innerText=Math.floor(workSeconds/60)+" min"
+},1000)
+
+}
+
+function lunch(){
+
+if(!lunchStart){
+
+clearInterval(workTimer)
+
+lunchStart = new Date()
+
+document.getElementById("lunchBtn").innerText="Tushlikni yakunlash"
+
+lunchTimer=setInterval(()=>{
+lunchSeconds++
+document.getElementById("lunchTime").innerText=Math.floor(lunchSeconds/60)+" min"
+},1000)
+
+}else{
+
+clearInterval(lunchTimer)
+
+lunchStart=null
+
+document.getElementById("lunchBtn").innerText="Tushlik vaqtini boshlash"
+
+workTimer=setInterval(()=>{
+workSeconds++
+document.getElementById("workTime").innerText=Math.floor(workSeconds/60)+" min"
+},1000)
+
+}
+
+}
+
+function finishWork(){
+
+clearInterval(workTimer)
+
+alert("Bugungi ish tugadi")
+
+}
+
+</script>
+
+</body>
+</html>
