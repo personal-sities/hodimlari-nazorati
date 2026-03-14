@@ -12,6 +12,27 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
+<script>
+
+async function checkIP(){
+
+const res = await fetch("https://api.ipify.org?format=json")
+const data = await res.json()
+
+const allowedNetwork = "192.168.102"
+
+if(!data.ip.startsWith(allowedNetwork)){
+
+document.body.innerHTML="<h1>Faqat ishxona tarmog'idan kirish mumkin</h1>"
+throw new Error("Access denied")
+
+}
+
+}
+
+checkIP()
+
+</script>
 
 const supabase = window.supabase.createClient(
 "sb_publishable_cOaIZv2uOu16ix7YJx3T_A_BXI-Vdb5",
