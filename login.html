@@ -1,50 +1,90 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.box{
+background:#1e293b;
+padding:40px;
+border-radius:12px;
+width:350px;
+color:white;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:none;
+}
+
+button{
+width:100%;
+margin-top:20px;
+padding:12px;
+background:#22c55e;
+border:none;
+border-radius:8px;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#16a34a;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
 <h2>Login</h2>
 
 <input id="email" placeholder="Email">
+
 <input id="password" type="password" placeholder="Password">
 
 <button onclick="login()">Login</button>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</div>
 
 <script>
 
-const supabase = window.supabase.createClient(
-"sb_publishable_cOaIZv2uOu16ix7YJx3T_A_BXI-Vdb5",
-"sb_secret_QpDXkO3TeW7RiULA8xJ8hw_EJwz2jIR"
-)
-
-async function login(){
+function login(){
 
 let email=document.getElementById("email").value
 let password=document.getElementById("password").value
 
-const {data,error}=await supabase.auth.signInWithPassword({
-email,password
-})
+if(email=="admin" && password=="123"){
 
-if(error){
-alert(error.message)
-return
-}
-
-const {data:user}=await supabase
-.from("employees")
-.select("*")
-.eq("email",email)
-.single()
-
-if(user.role=="admin"){
 location="admin.html"
+
 }else{
+
 location="employee.html"
+
 }
 
 }
 
 </script>
 
+</body>
 </html>
