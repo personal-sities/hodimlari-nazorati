@@ -1,17 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Admin panel</title>
-</head>
 
-<body>
-
-<h2>Admin Panel</h2>
+<h2>Admin panel</h2>
 
 <h3>Hodim qo'shish</h3>
 
-<input id="name" placeholder="name">
-<input id="email" placeholder="email">
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
 
 <button onclick="addEmployee()">Qo'shish</button>
 
@@ -19,16 +14,23 @@
 
 <ul id="list"></ul>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <script>
+
+const supabase = window.supabase.createClient(
+"sb_publishable_cOaIZv2uOu16ix7YJx3T_A_BXI-Vdb5",
+"sb_secret_QpDXkO3TeW7RiULA8xJ8hw_EJwz2jIR"
+)
 
 async function addEmployee(){
 
 let name=document.getElementById("name").value
 let email=document.getElementById("email").value
 
-await supabase.from("employees").insert([
-{name,email}
-])
+await supabase.from("employees").insert({
+name,email
+})
 
 loadEmployees()
 
@@ -36,7 +38,7 @@ loadEmployees()
 
 async function loadEmployees(){
 
-let {data}=await supabase
+const {data}=await supabase
 .from("employees")
 .select("*")
 
@@ -72,5 +74,4 @@ loadEmployees()
 
 </script>
 
-</body>
 </html>
