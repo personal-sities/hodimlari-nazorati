@@ -1,108 +1,96 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Employee Panel</title>
-</head>
-
-<body>
 
 <h2>Hodim paneli</h2>
 
 <button onclick="startWork()">Ishni boshlash</button>
 
-<button id="lunchBtn" onclick="lunch()">Tushlik vaqtini boshlash</button>
+<button id="lunchBtn" onclick="lunch()">Tushlik boshlash</button>
 
 <button onclick="finishWork()">Ishni yakunlash</button>
 
-<h3>Ish vaqti: <span id="workTime">0</span></h3>
-<h3>Tushlik vaqti: <span id="lunchTime">0</span></h3>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-async function checkIP(){
 
-const res = await fetch("https://api.ipify.org?format=json")
-const data = await res.json()
+const supabase = window.supabase.createClient(
+"sb_publishable_cOaIZv2uOu16ix7YJx3T_A_BXI-Vdb5",
+"sb_secret_QpDXkO3TeW7RiULA8xJ8hw_EJwz2jIR"
+)
 
-const allowedIP = "192.168.102.129"
+let sessionId=null
+let lunchStarted=false
 
-if(data.ip !== allowedIP){
+async function startWork(){
 
-document.body.innerHTML = "<h1>Faqat ishxona tarmog'idan kirish mumkin!</h1>"
-throw new Error("IP blocked")
+const {data:user}=await supabase.auth.getUser()
+
+let now=new Date()
+
+let workStart=new Date()
+workStart.setHours(9,0,0,0)
+
+let late=0
+
+if(now>workStart){
+late=Math.floor((now-workStart)/60000)
+}
+
+const {data}=await supabase
+.from("work_sessions")
+.insert({
+employee_id:user.user.id,
+date:new Date(),
+start_time:now,
+late_minutes:late
+})
+.select()
+
+sessionId=data[0].id
+
+alert("Ish boshlandi")
 
 }
 
-}
+async function lunch(){
 
-checkIP()
+if(!lunchStarted){
 
-let startTime
-let lunchStart
-let workTimer
-let lunchTimer
-let workSeconds=0
-let lunchSeconds=0
+await supabase
+.from("work_sessions")
+.update({lunch_start:new Date()})
+.eq("id",sessionId)
 
-function startWork(){
+document.getElementById("lunchBtn").innerText="Tushlikni tugatish"
 
-startTime = new Date()
-
-if(startTime.getHours() >= 9){
-
-let late = (startTime.getHours()-9)*60 + startTime.getMinutes()
-
-alert("Kechikish: "+late+" daqiqa")
-
-}
-
-workTimer=setInterval(()=>{
-workSeconds++
-document.getElementById("workTime").innerText=Math.floor(workSeconds/60)+" min"
-},1000)
-
-}
-
-function lunch(){
-
-if(!lunchStart){
-
-clearInterval(workTimer)
-
-lunchStart = new Date()
-
-document.getElementById("lunchBtn").innerText="Tushlikni yakunlash"
-
-lunchTimer=setInterval(()=>{
-lunchSeconds++
-document.getElementById("lunchTime").innerText=Math.floor(lunchSeconds/60)+" min"
-},1000)
+lunchStarted=true
 
 }else{
 
-clearInterval(lunchTimer)
+await supabase
+.from("work_sessions")
+.update({lunch_end:new Date()})
+.eq("id",sessionId)
 
-lunchStart=null
+document.getElementById("lunchBtn").innerText="Tushlik boshlash"
 
-document.getElementById("lunchBtn").innerText="Tushlik vaqtini boshlash"
-
-workTimer=setInterval(()=>{
-workSeconds++
-document.getElementById("workTime").innerText=Math.floor(workSeconds/60)+" min"
-},1000)
+lunchStarted=false
 
 }
 
 }
 
-function finishWork(){
+async function finishWork(){
 
-clearInterval(workTimer)
+await supabase
+.from("work_sessions")
+.update({end_time:new Date()})
+.eq("id",sessionId)
 
-alert("Bugungi ish tugadi")
+alert("Ish tugadi")
 
 }
 
 </script>
 
-</body>
 </html>
