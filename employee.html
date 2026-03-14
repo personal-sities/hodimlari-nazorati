@@ -18,6 +18,23 @@
 <h3>Tushlik vaqti: <span id="lunchTime">0</span></h3>
 
 <script>
+async function checkIP(){
+
+const res = await fetch("https://api.ipify.org?format=json")
+const data = await res.json()
+
+const allowedIP = "192.168.102.129"
+
+if(data.ip !== allowedIP){
+
+document.body.innerHTML = "<h1>Faqat ishxona tarmog'idan kirish mumkin!</h1>"
+throw new Error("IP blocked")
+
+}
+
+}
+
+checkIP()
 
 let startTime
 let lunchStart
