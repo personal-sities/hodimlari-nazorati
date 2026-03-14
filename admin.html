@@ -1,86 +1,1027 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Admin</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel | Nazorat tizimi</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-<style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #162033;
+      --muted: #6b7280;
+      --line: #e6ebf2;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf3;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
 
-body{
-font-family:Arial;
-background:#f1f5f9;
-padding:40px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-.card{
-background:white;
-padding:30px;
-border-radius:12px;
-width:500px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
 
-input{
-padding:10px;
-border-radius:8px;
-border:1px solid #ddd;
-margin-right:10px;
-}
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      padding: 24px 18px;
+    }
 
-button{
-padding:10px 20px;
-background:#2563eb;
-border:none;
-border-radius:8px;
-color:white;
-cursor:pointer;
-}
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
 
-table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
-}
+    .nav-title {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-td,th{
-border-bottom:1px solid #ddd;
-padding:10px;
-}
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-</style>
+    .nav button {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      color: var(--text);
+      transition: 0.2s;
+    }
 
+    .nav button.active,
+    .nav button:hover {
+      background: var(--soft-blue);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .topbar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .topbar h1 {
+      font-size: 28px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-light {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .btn-light:hover {
+      background: #eef2f7;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      filter: brightness(0.95);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .page-section {
+      display: none;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .panel-title {
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    input,
+    select {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #bfd4ff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 0.8fr auto auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+      background: white;
+    }
+
+    thead {
+      background: #f8fafc;
+    }
+
+    th,
+    td {
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background: #fcfdff;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-success {
+      background: var(--soft-green);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: var(--soft-yellow);
+      color: #b45309;
+    }
+
+    .badge-danger {
+      background: var(--soft-red);
+      color: var(--danger);
+    }
+
+    .badge-neutral {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mini-btn:hover {
+      background: #f8fafc;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .holiday-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .holiday-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .holiday-tag button {
+      border: none;
+      background: transparent;
+      color: #c2410c;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .report-summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .report-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fafcff;
+    }
+
+    .report-box h4 {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .report-box p {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1200px) {
+      .cards,
+      .report-summary,
+      .settings-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filter-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .cards,
+      .report-summary,
+      .settings-grid,
+      .filter-row {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">Nazorat tizimi</div>
 
-<div class="card">
+      <div class="nav-title">Menyu</div>
+      <div class="nav">
+        <button class="active" onclick="showSection('employees', this)">Hodimlar</button>
+        <button onclick="showSection('settings', this)">Sozlamalar</button>
+      </div>
+    </aside>
 
-<h2>Admin Panel</h2>
+    <main class="content">
+      <div class="topbar">
+        <h1>Nazorat tizimi</h1>
 
-<h3>Hodim qo'shish</h3>
+        <div class="topbar-right">
+          <span id="todayText" style="color:#6b7280; font-size:14px;"></span>
+          <button class="btn btn-danger" onclick="logout()">Chiqish</button>
+        </div>
+      </div>
 
-<input placeholder="Ism">
+      <div class="cards">
+        <div class="stat-card">
+          <div class="stat-label">Bugun ishda</div>
+          <div class="stat-value" id="statPresent">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bugun kechikkan</div>
+          <div class="stat-value" id="statLate">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bugun kelmagan</div>
+          <div class="stat-value" id="statAbsent">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tanlangan sana</div>
+          <div class="stat-value" id="statDate" style="font-size:20px;">-</div>
+        </div>
+      </div>
 
-<input placeholder="Email">
+      <!-- HODIMLAR -->
+      <section id="employeesSection" class="page-section active">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Hodimlar nazorati</div>
+            <div class="controls">
+              <label for="selectedDate">Sana:</label>
+              <input type="date" id="selectedDate" onchange="renderDailyTable()" />
+              <button class="btn btn-light" onclick="setToday()">Bugungi kun</button>
+              <button class="btn btn-primary" onclick="generateMonthlyReport()">Oylik hisobot</button>
+            </div>
+          </div>
 
-<button>Qo'shish</button>
+          <div class="filter-row">
+            <input type="text" id="searchInput" placeholder="Ism familiya bo‘yicha qidirish..." oninput="renderDailyTable()" />
+            <select id="statusFilter" onchange="renderDailyTable()">
+              <option value="all">Barcha statuslar</option>
+              <option value="Ishda">Ishda</option>
+              <option value="Kechikkan">Kechikkan</option>
+              <option value="Kelmagan">Kelmagan</option>
+              <option value="Dam olish kuni">Dam olish kuni</option>
+            </select>
+            <input type="month" id="reportMonth" />
+            <button class="btn btn-light" onclick="fillCurrentMonth()">Joriy oy</button>
+            <button class="btn btn-success" onclick="generateMonthlyReport()">Hisobotni yangilash</button>
+          </div>
 
-<table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Ism familiya</th>
+                  <th>Login</th>
+                  <th>Parol</th>
+                  <th>O‘zgartirish</th>
+                  <th>Kelgan vaqti</th>
+                  <th>Kechikish</th>
+                  <th>Kunlik ishlagan soat</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="employeeTableBody"></tbody>
+            </table>
+          </div>
+          <div class="hint">
+            Eslatma: bu hozircha demo ko‘rinish. Keyingi bosqichda shu jadval Supabase ma’lumotlari bilan real ishlaydi.
+          </div>
+        </div>
 
-<tr>
-<th>Hodim</th>
-<th>Status</th>
-</tr>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Oylik hisobot</div>
+            <div class="controls">
+              <span id="reportTitle" style="color:#6b7280; font-size:14px;">Hisobot hali yaratilmagan</span>
+            </div>
+          </div>
 
-<tr>
-<td>Ali</td>
-<td>Ishda</td>
-</tr>
+          <div class="report-summary">
+            <div class="report-box">
+              <h4>Oy bo‘yicha hodimlar</h4>
+              <p id="reportEmployeesCount">0</p>
+            </div>
+            <div class="report-box">
+              <h4>Jami kechikishlar</h4>
+              <p id="reportTotalLateCount">0</p>
+            </div>
+            <div class="report-box">
+              <h4>Jami kelmagan kunlar</h4>
+              <p id="reportTotalAbsentCount">0</p>
+            </div>
+            <div class="report-box">
+              <h4>Jami ish soati</h4>
+              <p id="reportTotalHours">0 soat</p>
+            </div>
+            <div class="report-box">
+              <h4>Jami KPI</h4>
+              <p id="reportTotalKpi">0 UZS</p>
+            </div>
+          </div>
 
-</table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Ism familiya</th>
+                  <th>Oy davomida ishlagan soati</th>
+                  <th>Kech qolishlar soni</th>
+                  <th>Kelmagan kunlar</th>
+                  <th>Jarima ball</th>
+                  <th>Qo‘shimcha ball</th>
+                  <th>Yakuniy KPI bali</th>
+                  <th>KPI summasi</th>
+                  <th>Ball boshqarish</th>
+                </tr>
+              </thead>
+              <tbody id="monthlyReportBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-</div>
+      <!-- SOZLAMALAR -->
+      <section id="settingsSection" class="page-section">
+        <div class="settings-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Qo‘shimcha dam olish kunlari</div>
+            </div>
 
+            <div class="controls" style="margin-bottom:14px;">
+              <input type="date" id="holidayDate" />
+              <button class="btn btn-primary" onclick="addHoliday()">Dam olish kuni qo‘shish</button>
+            </div>
+
+            <div class="hint">
+              Standart ish kunlari: Dushanba - Shanba. Yakshanba avtomatik dam olish kuni hisoblanadi.
+            </div>
+
+            <div class="holiday-list" id="holidayList"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">KPI qoidalari</div>
+            </div>
+
+            <div style="display:grid; gap:12px;">
+              <div class="report-box">
+                <h4>Asosiy KPI ball</h4>
+                <p style="font-size:20px;">100 ball</p>
+              </div>
+
+              <div class="report-box">
+                <h4>Kech qolish jarimasi</h4>
+                <p style="font-size:20px;">-10 ball</p>
+              </div>
+
+              <div class="report-box">
+                <h4>KPI to‘lov diapazonlari</h4>
+                <div style="line-height:1.9; color:#334155; font-size:14px;">
+                  90-100 ball → 560 000 UZS<br>
+                  80-89 ball → 420 000 UZS<br>
+                  70-79 ball → 280 000 UZS<br>
+                  70 balldan past → 0 UZS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ===== DEMO DATA =====
+    const employees = [
+      { id: 1, fullName: "Ali Valiyev", login: "ali", password: "123456" },
+      { id: 2, fullName: "Sardor Karimov", login: "sardor", password: "654321" },
+      { id: 3, fullName: "Dilshod Ergashev", login: "dilshod", password: "112233" },
+      { id: 4, fullName: "Madina Qodirova", login: "madina", password: "987654" }
+    ];
+
+    // Demo attendance data
+    // status logic keyin Supabase bilan real bo'ladi
+    const attendanceData = {
+      "2025-03-10": {
+        1: { arrival: "08:55", lateMinutes: 0, workedHours: 8.5, started: true },
+        2: { arrival: "09:14", lateMinutes: 14, workedHours: 7.9, started: true },
+        3: { arrival: "", lateMinutes: 0, workedHours: 0, started: false },
+        4: { arrival: "09:03", lateMinutes: 3, workedHours: 8.1, started: true }
+      },
+      "2025-03-11": {
+        1: { arrival: "09:18", lateMinutes: 18, workedHours: 7.4, started: true },
+        2: { arrival: "08:58", lateMinutes: 0, workedHours: 8.7, started: true },
+        3: { arrival: "09:01", lateMinutes: 1, workedHours: 8.2, started: true },
+        4: { arrival: "", lateMinutes: 0, workedHours: 0, started: false }
+      },
+      "2025-03-12": {
+        1: { arrival: "08:59", lateMinutes: 0, workedHours: 8.3, started: true },
+        2: { arrival: "09:40", lateMinutes: 40, workedHours: 7.2, started: true },
+        3: { arrival: "08:57", lateMinutes: 0, workedHours: 8.8, started: true },
+        4: { arrival: "09:00", lateMinutes: 0, workedHours: 8.0, started: true }
+      }
+    };
+
+    let extraHolidays = JSON.parse(localStorage.getItem("extraHolidays") || "[]");
+    let bonusAdjustments = JSON.parse(localStorage.getItem("bonusAdjustments") || "{}");
+
+    // ===== UTILS =====
+    function formatDateHuman(dateStr) {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("uz-UZ", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function formatMonthHuman(monthStr) {
+      const [year, month] = monthStr.split("-");
+      const d = new Date(Number(year), Number(month) - 1, 1);
+      return d.toLocaleDateString("uz-UZ", {
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function isSunday(dateStr) {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.getDay() === 0;
+    }
+
+    function isHoliday(dateStr) {
+      return isSunday(dateStr) || extraHolidays.includes(dateStr);
+    }
+
+    function getDayData(dateStr, employeeId) {
+      return attendanceData[dateStr]?.[employeeId] || null;
+    }
+
+    function getStatus(dateStr, employeeId) {
+      if (isHoliday(dateStr)) return "Dam olish kuni";
+
+      const day = getDayData(dateStr, employeeId);
+      if (!day || !day.started) return "Kelmagan";
+      if (day.lateMinutes > 0) return "Kechikkan";
+      return "Ishda";
+    }
+
+    function getStatusBadge(status) {
+      if (status === "Ishda") return `<span class="badge badge-success">Ishda</span>`;
+      if (status === "Kechikkan") return `<span class="badge badge-warning">Kechikkan</span>`;
+      if (status === "Kelmagan") return `<span class="badge badge-danger">Kelmagan</span>`;
+      return `<span class="badge badge-neutral">Dam olish kuni</span>`;
+    }
+
+    function formatHours(hours) {
+      const h = Math.floor(hours);
+      const m = Math.round((hours - h) * 60);
+      return `${h} soat ${m} daqiqa`;
+    }
+
+    function calculateKpiMoney(score) {
+      if (score >= 90) return 560000;
+      if (score >= 80) return 420000;
+      if (score >= 70) return 280000;
+      return 0;
+    }
+
+    function formatMoney(value) {
+      return value.toLocaleString("uz-UZ") + " UZS";
+    }
+
+    function getMonthDates(monthStr) {
+      const [year, month] = monthStr.split("-").map(Number);
+      const lastDay = new Date(year, month, 0).getDate();
+      const dates = [];
+      for (let day = 1; day <= lastDay; day++) {
+        const full = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        dates.push(full);
+      }
+      return dates;
+    }
+
+    // ===== UI =====
+    function showSection(section, button) {
+      document.getElementById("employeesSection").classList.remove("active");
+      document.getElementById("settingsSection").classList.remove("active");
+
+      document.querySelectorAll(".nav button").forEach(btn => btn.classList.remove("active"));
+
+      if (section === "employees") {
+        document.getElementById("employeesSection").classList.add("active");
+      } else {
+        document.getElementById("settingsSection").classList.add("active");
+      }
+
+      button.classList.add("active");
+    }
+
+    function logout() {
+      location.href = "login.html";
+    }
+
+    function setToday() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      const full = `${y}-${m}-${d}`;
+      document.getElementById("selectedDate").value = full;
+      renderDailyTable();
+    }
+
+    function fillCurrentMonth() {
+      const today = new Date();
+      const value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+      document.getElementById("reportMonth").value = value;
+      generateMonthlyReport();
+    }
+
+    function editEmployee(id) {
+      const emp = employees.find(e => e.id === id);
+      const newLogin = prompt("Yangi login:", emp.login);
+      if (newLogin === null) return;
+
+      const newPassword = prompt("Yangi parol:", emp.password);
+      if (newPassword === null) return;
+
+      emp.login = newLogin.trim() || emp.login;
+      emp.password = newPassword.trim() || emp.password;
+      renderDailyTable();
+      generateMonthlyReport();
+    }
+
+    function renderDailyTable() {
+      const selectedDate = document.getElementById("selectedDate").value;
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const statusFilter = document.getElementById("statusFilter").value;
+      const tbody = document.getElementById("employeeTableBody");
+
+      document.getElementById("statDate").innerText = formatDateHuman(selectedDate);
+      document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(getTodayString());
+
+      let present = 0;
+      let late = 0;
+      let absent = 0;
+
+      const rows = employees
+        .filter(emp => emp.fullName.toLowerCase().includes(search))
+        .filter(emp => {
+          const status = getStatus(selectedDate, emp.id);
+          return statusFilter === "all" ? true : status === statusFilter;
+        })
+        .map((emp, index) => {
+          const status = getStatus(selectedDate, emp.id);
+          const day = getDayData(selectedDate, emp.id);
+
+          if (status === "Ishda") present++;
+          if (status === "Kechikkan") {
+            present++;
+            late++;
+          }
+          if (status === "Kelmagan") absent++;
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${emp.fullName}</td>
+              <td>${emp.login}</td>
+              <td>${emp.password}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="mini-btn" onclick="editEmployee(${emp.id})">O‘zgartirish</button>
+                </div>
+              </td>
+              <td>${day?.arrival || "-"}</td>
+              <td>${day?.lateMinutes ? day.lateMinutes + " daqiqa" : "-"}</td>
+              <td>${day?.workedHours ? formatHours(day.workedHours) : "-"}</td>
+              <td>${getStatusBadge(status)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      tbody.innerHTML = rows || `
+        <tr>
+          <td colspan="9" style="text-align:center; color:#6b7280;">Ma'lumot topilmadi</td>
+        </tr>
+      `;
+
+      document.getElementById("statPresent").innerText = present;
+      document.getElementById("statLate").innerText = late;
+      document.getElementById("statAbsent").innerText = absent;
+    }
+
+    function generateMonthlyReport() {
+      const monthInput = document.getElementById("reportMonth");
+      const selectedDate = document.getElementById("selectedDate").value;
+      const monthStr = monthInput.value || selectedDate.slice(0, 7);
+
+      monthInput.value = monthStr;
+
+      const dates = getMonthDates(monthStr);
+      const tbody = document.getElementById("monthlyReportBody");
+
+      let totalLateCount = 0;
+      let totalAbsentCount = 0;
+      let totalHours = 0;
+      let totalKpi = 0;
+
+      const rows = employees.map((emp, index) => {
+        let workedHours = 0;
+        let lateCount = 0;
+        let absentCount = 0;
+
+        dates.forEach(dateStr => {
+          if (isHoliday(dateStr)) return;
+
+          const day = getDayData(dateStr, emp.id);
+          if (!day || !day.started) {
+            absentCount++;
+            return;
+          }
+
+          workedHours += day.workedHours || 0;
+
+          if ((day.lateMinutes || 0) > 0) {
+            lateCount++;
+          }
+        });
+
+        const penalty = lateCount * 10;
+        const bonus = bonusAdjustments[emp.id] || 0;
+        const finalScore = Math.max(0, 100 - penalty + bonus);
+        const kpi = calculateKpiMoney(finalScore);
+
+        totalLateCount += lateCount;
+        totalAbsentCount += absentCount;
+        totalHours += workedHours;
+        totalKpi += kpi;
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${emp.fullName}</td>
+            <td>${formatHours(workedHours)}</td>
+            <td>${lateCount} marta</td>
+            <td>${absentCount} kun</td>
+            <td>-${penalty} ball</td>
+            <td>${bonus >= 0 ? "+" + bonus : bonus} ball</td>
+            <td><strong>${finalScore} ball</strong></td>
+            <td><strong>${formatMoney(kpi)}</strong></td>
+            <td>
+              <div class="row-actions">
+                <button class="mini-btn" onclick="changeBonus(${emp.id}, 10)">+10</button>
+                <button class="mini-btn" onclick="changeBonus(${emp.id}, -10)">-10</button>
+                <button class="mini-btn" onclick="changeBonus(${emp.id}, 0, true)">Reset</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      tbody.innerHTML = rows || `
+        <tr>
+          <td colspan="10" style="text-align:center; color:#6b7280;">Hisobot uchun ma'lumot topilmadi</td>
+        </tr>
+      `;
+
+      document.getElementById("reportTitle").innerText = formatMonthHuman(monthStr) + " uchun hisobot";
+      document.getElementById("reportEmployeesCount").innerText = employees.length;
+      document.getElementById("reportTotalLateCount").innerText = totalLateCount;
+      document.getElementById("reportTotalAbsentCount").innerText = totalAbsentCount;
+      document.getElementById("reportTotalHours").innerText = formatHours(totalHours);
+      document.getElementById("reportTotalKpi").innerText = formatMoney(totalKpi);
+    }
+
+    function changeBonus(employeeId, amount, reset = false) {
+      if (reset) {
+        bonusAdjustments[employeeId] = 0;
+      } else {
+        bonusAdjustments[employeeId] = (bonusAdjustments[employeeId] || 0) + amount;
+      }
+      localStorage.setItem("bonusAdjustments", JSON.stringify(bonusAdjustments));
+      generateMonthlyReport();
+    }
+
+    function addHoliday() {
+      const value = document.getElementById("holidayDate").value;
+      if (!value) {
+        alert("Avval sana tanlang");
+        return;
+      }
+
+      if (!extraHolidays.includes(value)) {
+        extraHolidays.push(value);
+        extraHolidays.sort();
+        localStorage.setItem("extraHolidays", JSON.stringify(extraHolidays));
+      }
+
+      document.getElementById("holidayDate").value = "";
+      renderHolidays();
+      renderDailyTable();
+      generateMonthlyReport();
+    }
+
+    function removeHoliday(dateStr) {
+      extraHolidays = extraHolidays.filter(d => d !== dateStr);
+      localStorage.setItem("extraHolidays", JSON.stringify(extraHolidays));
+      renderHolidays();
+      renderDailyTable();
+      generateMonthlyReport();
+    }
+
+    function renderHolidays() {
+      const list = document.getElementById("holidayList");
+
+      if (!extraHolidays.length) {
+        list.innerHTML = `<div class="hint">Hozircha qo‘shimcha dam olish kuni belgilanmagan</div>`;
+        return;
+      }
+
+      list.innerHTML = extraHolidays.map(date => `
+        <div class="holiday-tag">
+          ${formatDateHuman(date)}
+          <button onclick="removeHoliday('${date}')">×</button>
+        </div>
+      `).join("");
+    }
+
+    function getTodayString() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function init() {
+      const today = getTodayString();
+      document.getElementById("selectedDate").value = today;
+      document.getElementById("reportMonth").value = today.slice(0, 7);
+      document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(today);
+      renderHolidays();
+      renderDailyTable();
+      generateMonthlyReport();
+    }
+
+    init();
+  </script>
 </body>
 </html>
