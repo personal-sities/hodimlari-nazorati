@@ -1,117 +1,45 @@
 <!DOCTYPE html>
 <html>
 
-<h2>Hodim paneli</h2>
+<head>
+<meta charset="UTF-8">
+<title>Employee</title>
 
-<button onclick="startWork()">Ishni boshlash</button>
+<style>
 
-<button id="lunchBtn" onclick="lunch()">Tushlik boshlash</button>
-
-<button onclick="finishWork()">Ishni yakunlash</button>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-<script>
-<script>
-
-async function checkIP(){
-
-const res = await fetch("https://api.ipify.org?format=json")
-const data = await res.json()
-
-const allowedNetwork = "192.168.102"
-
-if(!data.ip.startsWith(allowedNetwork)){
-
-document.body.innerHTML="<h1>Faqat ishxona tarmog'idan kirish mumkin</h1>"
-throw new Error("Access denied")
-
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding-top:100px;
 }
 
+button{
+padding:15px 30px;
+margin:10px;
+border:none;
+border-radius:10px;
+font-size:16px;
+cursor:pointer;
 }
 
-checkIP()
+.start{background:#22c55e;}
+.lunch{background:#f59e0b;}
+.finish{background:#ef4444;}
 
-</script>
+</style>
+</head>
 
-const supabase = window.supabase.createClient(
-"sb_publishable_cOaIZv2uOu16ix7YJx3T_A_BXI-Vdb5",
-"sb_secret_QpDXkO3TeW7RiULA8xJ8hw_EJwz2jIR"
-)
+<body>
 
-let sessionId=null
-let lunchStarted=false
+<h1>Hodim paneli</h1>
 
-async function startWork(){
+<button class="start">Ishni boshlash</button>
 
-const {data:user}=await supabase.auth.getUser()
+<button class="lunch">Tushlik</button>
 
-let now=new Date()
+<button class="finish">Ishni yakunlash</button>
 
-let workStart=new Date()
-workStart.setHours(9,0,0,0)
-
-let late=0
-
-if(now>workStart){
-late=Math.floor((now-workStart)/60000)
-}
-
-const {data}=await supabase
-.from("work_sessions")
-.insert({
-employee_id:user.user.id,
-date:new Date(),
-start_time:now,
-late_minutes:late
-})
-.select()
-
-sessionId=data[0].id
-
-alert("Ish boshlandi")
-
-}
-
-async function lunch(){
-
-if(!lunchStarted){
-
-await supabase
-.from("work_sessions")
-.update({lunch_start:new Date()})
-.eq("id",sessionId)
-
-document.getElementById("lunchBtn").innerText="Tushlikni tugatish"
-
-lunchStarted=true
-
-}else{
-
-await supabase
-.from("work_sessions")
-.update({lunch_end:new Date()})
-.eq("id",sessionId)
-
-document.getElementById("lunchBtn").innerText="Tushlik boshlash"
-
-lunchStarted=false
-
-}
-
-}
-
-async function finishWork(){
-
-await supabase
-.from("work_sessions")
-.update({end_time:new Date()})
-.eq("id",sessionId)
-
-alert("Ish tugadi")
-
-}
-
-</script>
-
+</body>
 </html>
