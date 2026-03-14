@@ -9,7 +9,7 @@
 
 body{
 font-family:Arial;
-background:#0f172a;
+background:#f1f5f9;
 display:flex;
 justify-content:center;
 align-items:center;
@@ -17,11 +17,11 @@ height:100vh;
 }
 
 .box{
-background:#1e293b;
+background:white;
 padding:40px;
 border-radius:12px;
 width:350px;
-color:white;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
 }
 
 input{
@@ -29,14 +29,14 @@ width:100%;
 padding:12px;
 margin-top:10px;
 border-radius:8px;
-border:none;
+border:1px solid #ddd;
 }
 
 button{
 width:100%;
 margin-top:20px;
 padding:12px;
-background:#22c55e;
+background:#2563eb;
 border:none;
 border-radius:8px;
 color:white;
@@ -45,7 +45,7 @@ cursor:pointer;
 }
 
 button:hover{
-background:#16a34a;
+background:#1d4ed8;
 }
 
 </style>
@@ -73,13 +73,9 @@ let email=document.getElementById("email").value
 let password=document.getElementById("password").value
 
 if(email=="admin" && password=="123"){
-
 location="admin.html"
-
 }else{
-
 location="employee.html"
-
 }
 
 }
