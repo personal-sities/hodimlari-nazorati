@@ -1057,6 +1057,74 @@
     }
 
     init();
-  </script>
+    // ===== HODIMLAR BOSHQARUVI (YANGI QO'SHILADI) =====
+
+let employeesSettings = JSON.parse(localStorage.getItem("employeesSettings") || "[]")
+
+function saveEmployees(){
+localStorage.setItem("employeesSettings",JSON.stringify(employeesSettings))
+renderEmployeesSettings()
+}
+
+function addEmployee(){
+
+let name=document.getElementById("empName").value
+let login=document.getElementById("empLogin").value
+let password=document.getElementById("empPassword").value
+let kpi=document.getElementById("empKpiType").value
+
+if(!name || !login || !password){
+alert("Ma'lumotlarni to'ldiring")
+return
+}
+
+employeesSettings.push({
+id:Date.now(),
+name,
+login,
+password,
+kpi
+})
+
+saveEmployees()
+
+document.getElementById("empName").value=""
+document.getElementById("empLogin").value=""
+document.getElementById("empPassword").value=""
+
+}
+
+function deleteEmployee(id){
+employeesSettings=employeesSettings.filter(e=>e.id!=id)
+saveEmployees()
+}
+
+function renderEmployeesSettings(){
+
+let html=""
+
+employeesSettings.forEach((e,i)=>{
+
+html+=`
+<tr>
+<td>${i+1}</td>
+<td>${e.name}</td>
+<td>${e.login}</td>
+<td>${e.password}</td>
+<td>${e.kpi=="old"?"Eski KPI":"Yangi KPI"}</td>
+<td>
+<button class="mini-btn" onclick="deleteEmployee(${e.id})">O'chirish</button>
+</td>
+</tr>
+`
+
+})
+
+document.getElementById("settingsEmployeeTable").innerHTML=html
+
+}
+
+renderEmployeesSettings()
+</script>
 </body>
 </html>
