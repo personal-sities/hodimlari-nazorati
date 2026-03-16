@@ -640,10 +640,45 @@
               </div>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+          <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Hodimlar boshqaruvi</div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+        <input id="empName" placeholder="Ism familiya">
+        <input id="empLogin" placeholder="Login">
+        <input id="empPassword" placeholder="Parol">
+
+        <select id="empKpiType">
+          <option value="old">Eski hodim KPI</option>
+          <option value="new">Yangi hodim KPI</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="addEmployee()">Hodim qo'shish</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ism familiya</th>
+              <th>Login</th>
+              <th>Parol</th>
+              <th>KPI turi</th>
+              <th>O‘chirish</th>
+            </tr>
+          </thead>
+          <tbody id="settingsEmployeeTable"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
+</section>
+</main>
+</div>
 
   <script>
     // ===== DEMO DATA =====
