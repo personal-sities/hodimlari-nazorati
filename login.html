@@ -101,39 +101,40 @@ async function checkOfficeIP() {
   }
 }
 
-async function login() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+async function login(){
 
-  if (!email || !password) {
-    alert("Email va parolni kiriting");
-    return;
-  }
+const email=document.getElementById("email").value.trim()
+const password=document.getElementById("password").value.trim()
 
-  const { error } = await sb.auth.signInWithPassword({
-    email,
-    password
-  });
+if(!email||!password){
+alert("Email va parol kiriting")
+return
+}
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+const {error}=await sb.auth.signInWithPassword({
+email,
+password
+})
 
-  try {
-    const profile = await getMyProfile();
+if(error){
+alert(error.message)
+return
+}
 
-    if (!profile) {
-      alert("Profil topilmadi");
-      await sb.auth.signOut();
-      return;
-    }
+const profile=await getMyProfile()
 
-    if (profile.role === "admin") {
-      location.href = "admin.html";
-    } else {
-      location.href = "employee.html";
-    }
+if(!profile){
+alert("Profil topilmadi")
+return
+}
+
+if(profile.role==="admin"){
+location.href="admin.html"
+}else{
+location.href="employee.html"
+}
+
+}
   } catch (err) {
     alert("Profilni olishda xatolik yuz berdi");
     console.error(err);
