@@ -102,39 +102,39 @@ async function checkOfficeIP() {
 }
 
 async function login(){
+  try{
 
-const email=document.getElementById("email").value.trim()
-const password=document.getElementById("password").value.trim()
+    const email=document.getElementById("email").value.trim()
+    const password=document.getElementById("password").value.trim()
 
-if(!email||!password){
-alert("Email va parol kiriting")
-return
-}
+    if(!email||!password){
+      alert("Email va parol kiriting")
+      return
+    }
 
-const {error}=await sb.auth.signInWithPassword({
-email,
-password
-})
+    const {error}=await sb.auth.signInWithPassword({
+      email,
+      password
+    })
 
-if(error){
-alert(error.message)
-return
-}
+    if(error){
+      alert(error.message)
+      return
+    }
 
-const profile=await getMyProfile()
+    const profile=await getMyProfile()
 
-if(!profile){
-alert("Profil topilmadi")
-return
-}
+    if(!profile){
+      alert("Profil topilmadi")
+      return
+    }
 
-if(profile.role==="admin"){
-location.href="admin.html"
-}else{
-location.href="employee.html"
-}
+    if(profile.role==="admin"){
+      location.href="admin.html"
+    }else{
+      location.href="employee.html"
+    }
 
-}
   } catch (err) {
     alert("Profilni olishda xatolik yuz berdi");
     console.error(err);
