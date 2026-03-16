@@ -420,10 +420,13 @@
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = "employee_attendance_demo_v1";
-    let appData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
     let timerInterval = null;
+    let currentUser = null;
+    let currentProfile = null;
+    let todayRecord = null;
 
     function getNow() {
       return new Date();
@@ -444,7 +447,7 @@
     }
 
     function formatClock(totalSeconds) {
-      const sec = Math.max(0, Math.floor(totalSeconds));
+      const sec = Math.max(0, Math.floor(Number(totalSeconds || 0)));
       const h = Math.floor(sec / 3600);
       const m = Math.floor((sec % 3600) / 60);
       const s = sec % 60;
@@ -466,11 +469,53 @@
       return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     }
 
-    function ensureTodayRecord() {
+    function convertDbRecord(row) {
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        date: row.work_date,
+        workSeconds: row.work_seconds || 0,
+        lunchSeconds: row.lunch_seconds || 0,
+        isWorking: row.status === "working",
+        isLunch: row.status === "lunch",
+        isFinished: row.status === "finished",
+        startedAt: row.start_time,
+        finishedAt: row.end_time,
+        lunchStartedAt: row.lunch_start,
+        lunchEndedAt: row.lunch_end,
+        lateMinutes: row.late_minutes || 0,
+        lastTick: null
+      };
+    }
+
+    async function loadTodayRecordFromSupabase() {
       const today = getTodayString();
 
-      if (!appData[today]) {
-        appData[today] = {
+      const { data, error } = await sb
+        .from("work_sessions")
+        .select("*")
+        .eq("employee_id", currentUser.id)
+        .eq("work_date", today)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        alert("Bugungi ma'lumotni yuklashda xatolik: " + error.message);
+        return null;
+      }
+
+      return convertDbRecord(data);
+    }
+
+    async function ensureTodayRecord() {
+      const today = getTodayString();
+
+      let record = await loadTodayRecordFromSupabase();
+
+      if (!record) {
+        record = {
+          id: null,
           date: today,
           workSeconds: 0,
           lunchSeconds: 0,
@@ -484,14 +529,62 @@
           lateMinutes: 0,
           lastTick: null
         };
-        saveData();
       }
 
-      return appData[today];
+      todayRecord = record;
+      return todayRecord;
     }
 
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    async function saveData() {
+      if (!todayRecord) return;
+
+      const payload = {
+        employee_id: currentUser.id,
+        work_date: todayRecord.date,
+        start_time: todayRecord.startedAt,
+        lunch_start: todayRecord.lunchStartedAt,
+        lunch_end: todayRecord.lunchEndedAt,
+        end_time: todayRecord.finishedAt,
+        work_seconds: todayRecord.workSeconds || 0,
+        lunch_seconds: todayRecord.lunchSeconds || 0,
+        late_minutes: todayRecord.lateMinutes || 0,
+        status: todayRecord.isFinished
+          ? "finished"
+          : todayRecord.isLunch
+          ? "lunch"
+          : todayRecord.isWorking
+          ? "working"
+          : "not_started"
+      };
+
+      if (todayRecord.id) {
+        const { data, error } = await sb
+          .from("work_sessions")
+          .update(payload)
+          .eq("id", todayRecord.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        todayRecord.id = data.id;
+      } else {
+        const { data, error } = await sb
+          .from("work_sessions")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        todayRecord.id = data.id;
+      }
     }
 
     function calculateLiveSeconds(record) {
@@ -513,8 +606,8 @@
       return { workSeconds, lunchSeconds };
     }
 
-    function commitRunningTime() {
-      const record = ensureTodayRecord();
+    async function commitRunningTime() {
+      const record = await ensureTodayRecord();
       if (!record.lastTick || record.isFinished) return;
 
       const now = Date.now();
@@ -530,7 +623,7 @@
       }
 
       record.lastTick = new Date().toISOString();
-      saveData();
+      await saveData();
     }
 
     function getLateMinutes(dateObj) {
@@ -541,8 +634,8 @@
       return Math.floor((dateObj.getTime() - startLimit.getTime()) / 60000);
     }
 
-    function updateStatus() {
-      const record = ensureTodayRecord();
+    async function updateStatus() {
+      const record = await ensureTodayRecord();
       let statusText = "Holat: Boshlanmagan";
 
       if (record.isFinished) {
@@ -561,17 +654,17 @@
       document.getElementById("lunchEndedText").textContent = formatTimeHuman(record.lunchEndedAt);
     }
 
-    function updateTimers() {
-      const record = ensureTodayRecord();
+    async function updateTimers() {
+      const record = await ensureTodayRecord();
       const live = calculateLiveSeconds(record);
 
       document.getElementById("workTimer").textContent = formatClock(live.workSeconds);
       document.getElementById("lunchTimer").textContent = formatClock(live.lunchSeconds);
-      updateStatus();
+      await updateStatus();
     }
 
-    function startWork() {
-      const record = ensureTodayRecord();
+    async function startWork() {
+      const record = await ensureTodayRecord();
 
       if (record.isFinished) {
         alert("Bugungi ish allaqachon yakunlangan.");
@@ -591,13 +684,14 @@
 
       record.isWorking = true;
       record.lastTick = new Date().toISOString();
-      saveData();
-      updateTimers();
-      renderHistory();
+
+      await saveData();
+      await updateTimers();
+      await renderHistory();
     }
 
-    function toggleLunch() {
-      const record = ensureTodayRecord();
+    async function toggleLunch() {
+      const record = await ensureTodayRecord();
 
       if (!record.startedAt) {
         alert("Avval ishni boshlang.");
@@ -609,7 +703,7 @@
         return;
       }
 
-      commitRunningTime();
+      await commitRunningTime();
 
       if (!record.isLunch) {
         record.isWorking = false;
@@ -623,13 +717,13 @@
         record.lastTick = new Date().toISOString();
       }
 
-      saveData();
-      updateTimers();
-      renderHistory();
+      await saveData();
+      await updateTimers();
+      await renderHistory();
     }
 
-    function finishWork() {
-      const record = ensureTodayRecord();
+    async function finishWork() {
+      const record = await ensureTodayRecord();
 
       if (!record.startedAt) {
         alert("Avval ishni boshlang.");
@@ -641,7 +735,7 @@
         return;
       }
 
-      commitRunningTime();
+      await commitRunningTime();
 
       if (record.isLunch) {
         record.isLunch = false;
@@ -655,15 +749,41 @@
       record.finishedAt = new Date().toISOString();
       record.lastTick = null;
 
-      saveData();
-      updateTimers();
-      renderHistory();
+      await saveData();
+      await updateTimers();
+      await renderHistory();
     }
 
-    function getMonthRecords(monthStr) {
-      return Object.values(appData)
-        .filter(item => item.date && item.date.startsWith(monthStr))
-        .sort((a, b) => a.date.localeCompare(b.date));
+    async function getMonthRecords(monthStr) {
+      const fromDate = `${monthStr}-01`;
+      const toDate = `${monthStr}-31`;
+
+      const { data, error } = await sb
+        .from("work_sessions")
+        .select("*")
+        .eq("employee_id", currentUser.id)
+        .gte("work_date", fromDate)
+        .lte("work_date", toDate)
+        .order("work_date", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        return [];
+      }
+
+      return (data || []).map(row => ({
+        date: row.work_date,
+        workSeconds: row.work_seconds || 0,
+        lunchSeconds: row.lunch_seconds || 0,
+        isWorking: row.status === "working",
+        isLunch: row.status === "lunch",
+        isFinished: row.status === "finished",
+        startedAt: row.start_time,
+        finishedAt: row.end_time,
+        lunchStartedAt: row.lunch_start,
+        lunchEndedAt: row.lunch_end,
+        lateMinutes: row.late_minutes || 0
+      }));
     }
 
     function getDayStatus(item) {
@@ -674,10 +794,10 @@
       return "Boshlanmagan";
     }
 
-    function renderHistory() {
+    async function renderHistory() {
       const monthStr = document.getElementById("monthFilter").value || getCurrentMonthString();
       const tbody = document.getElementById("historyTableBody");
-      const rows = getMonthRecords(monthStr);
+      const rows = await getMonthRecords(monthStr);
 
       if (!rows.length) {
         tbody.innerHTML = `
@@ -710,27 +830,84 @@
     }
 
     function logout() {
-      location.href = "login.html";
+      logoutUser();
     }
 
     function startTicker() {
       if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        updateTimers();
+
+      timerInterval = setInterval(async () => {
+        if (!todayRecord) return;
+
+        if (todayRecord.isWorking && !todayRecord.isLunch && !todayRecord.isFinished) {
+          todayRecord.workSeconds += 1;
+        } else if (todayRecord.isLunch && !todayRecord.isFinished) {
+          todayRecord.lunchSeconds += 1;
+        }
+
+        document.getElementById("workTimer").textContent = formatClock(todayRecord.workSeconds || 0);
+        document.getElementById("lunchTimer").textContent = formatClock(todayRecord.lunchSeconds || 0);
+
+        if (todayRecord.id) {
+          await sb
+            .from("work_sessions")
+            .update({
+              work_seconds: todayRecord.workSeconds || 0,
+              lunch_seconds: todayRecord.lunchSeconds || 0
+            })
+            .eq("id", todayRecord.id);
+        }
       }, 1000);
     }
 
-    function init() {
-      ensureTodayRecord();
-      document.getElementById("todayText").textContent = "Bugun: " + formatDateHuman(getTodayString());
-      document.getElementById("currentMonthBadge").textContent = "Joriy oy: " + getCurrentMonthString();
-      document.getElementById("monthFilter").value = getCurrentMonthString();
-      updateTimers();
-      renderHistory();
-      startTicker();
+    function showEmployeeReminder() {
+      const alreadyShown = sessionStorage.getItem("employeeReminderShown");
+
+      if (alreadyShown) return;
+
+      setTimeout(() => {
+        alert("Eslatma: “Ishni yakunlash” tugmasini faqat ish kuni to‘liq tugagandan keyin bosing. Uni vaqtidan oldin bosish ish kunining erta yakunlanishiga sabab bo‘ladi va bu KPI natijalariga salbiy ta’sir qilishi mumkin.");
+        sessionStorage.setItem("employeeReminderShown", "1");
+      }, 500);
+    }
+
+    async function init() {
+      try {
+        currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+          location.href = "login.html";
+          return;
+        }
+
+        currentProfile = await getMyProfile();
+
+        if (!currentProfile || currentProfile.role !== "employee") {
+          location.href = "login.html";
+          return;
+        }
+
+        await ensureTodayRecord();
+
+        document.getElementById("todayText").textContent = "Bugun: " + formatDateHuman(getTodayString());
+        document.getElementById("currentMonthBadge").textContent = "Joriy oy: " + getCurrentMonthString();
+
+        // Har yangi oyda employee sahifada joriy oy ko‘rinadi.
+        // Eski oylar Supabase’da saqlanadi, admin ularni ko‘rishda davom etadi.
+        document.getElementById("monthFilter").value = getCurrentMonthString();
+
+        await updateTimers();
+        await renderHistory();
+        startTicker();
+        showEmployeeReminder();
+
+      } catch (error) {
+        console.error(error);
+        alert("Hodim panelini yuklashda xatolik yuz berdi");
+      }
     }
 
     init();
-  </script>
+</script>
 </body>
 </html>
