@@ -79,6 +79,12 @@ async function checkOfficeIP() {
 
   try {
     const res = await fetch("https://api.ipify.org?format=json");
+
+    if (!res.ok) {
+      console.warn("IP service ishlamadi");
+      return;
+    }
+
     const data = await res.json();
 
     if (data.ip !== allowedIP) {
@@ -91,7 +97,7 @@ async function checkOfficeIP() {
       throw new Error("IP blocked");
     }
   } catch (error) {
-    console.error(error);
+    console.warn("IP tekshirish ishlamadi:", error);
   }
 }
 
@@ -129,7 +135,7 @@ async function login() {
       location.href = "employee.html";
     }
   } catch (err) {
-    alert("Siz faqat ishxonadagi Wifi yoki Kompyuteringiz orqali kirishingiz mumkin!");
+    alert("Profilni olishda xatolik yuz berdi");
     console.error(err);
   }
 }
