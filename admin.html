@@ -680,39 +680,12 @@
 </main>
 </div>
 
-  <script>
-    // ===== DEMO DATA =====
-    const employees = [
-      { id: 1, fullName: "Ali Valiyev", login: "ali", password: "123456" },
-      { id: 2, fullName: "Sardor Karimov", login: "sardor", password: "654321" },
-      { id: 3, fullName: "Dilshod Ergashev", login: "dilshod", password: "112233" },
-      { id: 4, fullName: "Madina Qodirova", login: "madina", password: "987654" }
-    ];
-
-    // Demo attendance data
-    // status logic keyin Supabase bilan real bo'ladi
-    const attendanceData = {
-      "2025-03-10": {
-        1: { arrival: "08:55", lateMinutes: 0, workedHours: 8.5, started: true },
-        2: { arrival: "09:14", lateMinutes: 14, workedHours: 7.9, started: true },
-        3: { arrival: "", lateMinutes: 0, workedHours: 0, started: false },
-        4: { arrival: "09:03", lateMinutes: 3, workedHours: 8.1, started: true }
-      },
-      "2025-03-11": {
-        1: { arrival: "09:18", lateMinutes: 18, workedHours: 7.4, started: true },
-        2: { arrival: "08:58", lateMinutes: 0, workedHours: 8.7, started: true },
-        3: { arrival: "09:01", lateMinutes: 1, workedHours: 8.2, started: true },
-        4: { arrival: "", lateMinutes: 0, workedHours: 0, started: false }
-      },
-      "2025-03-12": {
-        1: { arrival: "08:59", lateMinutes: 0, workedHours: 8.3, started: true },
-        2: { arrival: "09:40", lateMinutes: 40, workedHours: 7.2, started: true },
-        3: { arrival: "08:57", lateMinutes: 0, workedHours: 8.8, started: true },
-        4: { arrival: "09:00", lateMinutes: 0, workedHours: 8.0, started: true }
-      }
-    };
-
-    let extraHolidays = JSON.parse(localStorage.getItem("extraHolidays") || "[]");
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+   <script>
+    let employees = [];
+    let attendanceData = {};
+    let extraHolidays = [];
     let bonusAdjustments = JSON.parse(localStorage.getItem("bonusAdjustments") || "{}");
 
     // ===== UTILS =====
@@ -769,32 +742,29 @@
       return `${h} soat ${m} daqiqa`;
     }
 
-    function calculateEmployeeKpi(employee, score){
+    function calculateEmployeeKpi(employee, score) {
+      if (employee.kpi === "old") {
+        if (score >= 90) return 560000;
+        if (score >= 80) return 420000;
+        if (score >= 70) return 280000;
+        return 0;
+      }
 
-if(employee.kpi=="old"){
+      if (employee.kpi === "new") {
+        let penalty = 100 - score;
 
-if(score>=90) return 560000
-if(score>=80) return 420000
-if(score>=70) return 280000
-return 0
+        if (penalty <= 10) return 400000;
+        if (penalty <= 20) return 300000;
+        if (penalty <= 30) return 210000;
 
-}
+        return 0;
+      }
 
-if(employee.kpi=="new"){
+      return 0;
+    }
 
-let penalty=100-score
-
-if(penalty<=10) return 400000
-if(penalty<=20) return 300000
-if(penalty<=30) return 210000
-
-return 0
-
-}
-
-}
     function formatMoney(value) {
-      return value.toLocaleString("uz-UZ") + " UZS";
+      return Number(value || 0).toLocaleString("uz-UZ") + " UZS";
     }
 
     function getMonthDates(monthStr) {
@@ -806,6 +776,100 @@ return 0
         dates.push(full);
       }
       return dates;
+    }
+
+    function getTodayString() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatTimeOnly(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      const h = String(d.getHours()).padStart(2, "0");
+      const m = String(d.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+
+    function secondsToHours(seconds) {
+      return Number(seconds || 0) / 3600;
+    }
+
+    // ===== SUPABASE LOADERS =====
+    async function loadEmployeesFromSupabase() {
+      const { data, error } = await sb
+        .from("employees")
+        .select("*")
+        .order("full_name", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        alert("Hodimlarni yuklashda xatolik: " + error.message);
+        return;
+      }
+
+      employees = (data || []).map(emp => ({
+        id: emp.id,
+        fullName: emp.full_name,
+        login: emp.login,
+        password: "********",
+        email: emp.email,
+        kpi: emp.kpi_type || "old",
+        role: emp.role
+      }));
+    }
+
+    async function loadAttendanceFromSupabase() {
+      const { data, error } = await sb
+        .from("work_sessions")
+        .select("*");
+
+      if (error) {
+        console.error(error);
+        alert("Ish sessiyalarini yuklashda xatolik: " + error.message);
+        return;
+      }
+
+      attendanceData = {};
+
+      (data || []).forEach(row => {
+        const dateKey = row.work_date;
+        if (!attendanceData[dateKey]) {
+          attendanceData[dateKey] = {};
+        }
+
+        attendanceData[dateKey][row.employee_id] = {
+          arrival: row.start_time ? formatTimeOnly(row.start_time) : "",
+          lateMinutes: row.late_minutes || 0,
+          workedHours: secondsToHours(row.work_seconds || 0),
+          started: !!row.start_time,
+          status: row.status || "not_started"
+        };
+      });
+    }
+
+    async function loadHolidaysFromSupabase() {
+      const { data, error } = await sb
+        .from("extra_holidays")
+        .select("*")
+        .order("holiday_date", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        alert("Dam olish kunlarini yuklashda xatolik: " + error.message);
+        return;
+      }
+
+      extraHolidays = (data || []).map(item => item.holiday_date);
+    }
+
+    async function refreshSupabaseData() {
+      await loadEmployeesFromSupabase();
+      await loadAttendanceFromSupabase();
+      await loadHolidaysFromSupabase();
     }
 
     // ===== UI =====
@@ -825,7 +889,7 @@ return 0
     }
 
     function logout() {
-      location.href = "login.html";
+      logoutUser();
     }
 
     function setToday() {
@@ -845,18 +909,14 @@ return 0
       generateMonthlyReport();
     }
 
-    function editEmployee(id) {
+    async function editEmployee(id) {
       const emp = employees.find(e => e.id === id);
+      if (!emp) return;
+
       const newLogin = prompt("Yangi login:", emp.login);
       if (newLogin === null) return;
 
-      const newPassword = prompt("Yangi parol:", emp.password);
-      if (newPassword === null) return;
-
-      emp.login = newLogin.trim() || emp.login;
-      emp.password = newPassword.trim() || emp.password;
-      renderDailyTable();
-      generateMonthlyReport();
+      alert("Login/parolni real o‘zgartirish uchun keyingi bosqichda Edge Function ulaymiz. Hozircha jadval Supabase’dan o‘qib ishlayapti.");
     }
 
     function renderDailyTable() {
@@ -897,7 +957,7 @@ return 0
               <td>${emp.password}</td>
               <td>
                 <div class="row-actions">
-                  <button class="mini-btn" onclick="editEmployee(${emp.id})">O‘zgartirish</button>
+                  <button class="mini-btn" onclick="editEmployee('${emp.id}')">O‘zgartirish</button>
                 </div>
               </td>
               <td>${day?.arrival || "-"}</td>
@@ -959,7 +1019,7 @@ return 0
         const penalty = lateCount * 10;
         const bonus = bonusAdjustments[emp.id] || 0;
         const finalScore = Math.max(0, 100 - penalty + bonus);
-        const kpi = calculateKpiMoney(finalScore);
+        const kpi = calculateEmployeeKpi(emp, finalScore);
 
         totalLateCount += lateCount;
         totalAbsentCount += absentCount;
@@ -979,9 +1039,9 @@ return 0
             <td><strong>${formatMoney(kpi)}</strong></td>
             <td>
               <div class="row-actions">
-                <button class="mini-btn" onclick="changeBonus(${emp.id}, 10)">+10</button>
-                <button class="mini-btn" onclick="changeBonus(${emp.id}, -10)">-10</button>
-                <button class="mini-btn" onclick="changeBonus(${emp.id}, 0, true)">Reset</button>
+                <button class="mini-btn" onclick="changeBonus('${emp.id}', 10)">+10</button>
+                <button class="mini-btn" onclick="changeBonus('${emp.id}', -10)">-10</button>
+                <button class="mini-btn" onclick="changeBonus('${emp.id}', 0, true)">Reset</button>
               </div>
             </td>
           </tr>
@@ -1012,28 +1072,41 @@ return 0
       generateMonthlyReport();
     }
 
-    function addHoliday() {
+    async function addHoliday() {
       const value = document.getElementById("holidayDate").value;
       if (!value) {
         alert("Avval sana tanlang");
         return;
       }
 
-      if (!extraHolidays.includes(value)) {
-        extraHolidays.push(value);
-        extraHolidays.sort();
-        localStorage.setItem("extraHolidays", JSON.stringify(extraHolidays));
+      const { error } = await sb
+        .from("extra_holidays")
+        .insert([{ holiday_date: value }]);
+
+      if (error) {
+        alert("Dam olish kunini saqlashda xatolik: " + error.message);
+        return;
       }
 
       document.getElementById("holidayDate").value = "";
+      await loadHolidaysFromSupabase();
       renderHolidays();
       renderDailyTable();
       generateMonthlyReport();
     }
 
-    function removeHoliday(dateStr) {
-      extraHolidays = extraHolidays.filter(d => d !== dateStr);
-      localStorage.setItem("extraHolidays", JSON.stringify(extraHolidays));
+    async function removeHoliday(dateStr) {
+      const { error } = await sb
+        .from("extra_holidays")
+        .delete()
+        .eq("holiday_date", dateStr);
+
+      if (error) {
+        alert("Dam olish kunini o‘chirishda xatolik: " + error.message);
+        return;
+      }
+
+      await loadHolidaysFromSupabase();
       renderHolidays();
       renderDailyTable();
       generateMonthlyReport();
@@ -1055,93 +1128,75 @@ return 0
       `).join("");
     }
 
-    function getTodayString() {
-      const today = new Date();
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, "0");
-      const d = String(today.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
+    // ===== HODIMLAR BOSHQARUVI =====
+    async function addEmployee() {
+      alert("Yangi hodimni Supabase Auth bilan yaratish uchun keyingi bosqichda create-employee Edge Function ulaymiz.");
     }
 
-    function init() {
-      const today = getTodayString();
-      document.getElementById("selectedDate").value = today;
-      document.getElementById("reportMonth").value = today.slice(0, 7);
-      document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(today);
-      renderHolidays();
-      renderDailyTable();
-      generateMonthlyReport();
+    async function deleteEmployee(id) {
+      alert("Hodimni o‘chirish uchun keyingi bosqichda delete-employee Edge Function ulaymiz.");
+    }
+
+    function renderEmployeesSettings() {
+      let html = "";
+
+      employees.forEach((e, i) => {
+        html += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${e.fullName}</td>
+          <td>${e.login}</td>
+          <td>${e.password}</td>
+          <td>${e.kpi == "old" ? "Eski KPI" : "Yangi KPI"}</td>
+          <td>
+            <button class="mini-btn" onclick="deleteEmployee('${e.id}')">O'chirish</button>
+          </td>
+        </tr>
+        `;
+      });
+
+      document.getElementById("settingsEmployeeTable").innerHTML = html || `
+        <tr>
+          <td colspan="6" style="text-align:center; color:#6b7280;">Hodimlar topilmadi</td>
+        </tr>
+      `;
+    }
+
+    async function init() {
+      try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+          location.href = "login.html";
+          return;
+        }
+
+        const profile = await getMyProfile();
+
+        if (!profile || profile.role !== "admin") {
+          location.href = "login.html";
+          return;
+        }
+
+        const today = getTodayString();
+        document.getElementById("selectedDate").value = today;
+        document.getElementById("reportMonth").value = today.slice(0, 7);
+        document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(today);
+
+        await refreshSupabaseData();
+
+        renderHolidays();
+        renderDailyTable();
+        generateMonthlyReport();
+        renderEmployeesSettings();
+
+      } catch (error) {
+        console.error(error);
+        alert("Admin panelni yuklashda xatolik yuz berdi");
+      }
     }
 
     init();
-    // ===== HODIMLAR BOSHQARUVI (YANGI QO'SHILADI) =====
-
-let employeesSettings = JSON.parse(localStorage.getItem("employeesSettings") || "[]")
-
-function saveEmployees(){
-localStorage.setItem("employeesSettings",JSON.stringify(employeesSettings))
-renderEmployeesSettings()
-}
-
-function addEmployee(){
-
-let name=document.getElementById("empName").value
-let login=document.getElementById("empLogin").value
-let password=document.getElementById("empPassword").value
-let kpi=document.getElementById("empKpiType").value
-
-if(!name || !login || !password){
-alert("Ma'lumotlarni to'ldiring")
-return
-}
-
-employeesSettings.push({
-id:Date.now(),
-name,
-login,
-password,
-kpi
-})
-
-saveEmployees()
-
-document.getElementById("empName").value=""
-document.getElementById("empLogin").value=""
-document.getElementById("empPassword").value=""
-
-}
-
-function deleteEmployee(id){
-employeesSettings=employeesSettings.filter(e=>e.id!=id)
-saveEmployees()
-}
-
-function renderEmployeesSettings(){
-
-let html=""
-
-employeesSettings.forEach((e,i)=>{
-
-html+=`
-<tr>
-<td>${i+1}</td>
-<td>${e.name}</td>
-<td>${e.login}</td>
-<td>${e.password}</td>
-<td>${e.kpi=="old"?"Eski KPI":"Yangi KPI"}</td>
-<td>
-<button class="mini-btn" onclick="deleteEmployee(${e.id})">O'chirish</button>
-</td>
-</tr>
-`
-
-})
-
-document.getElementById("settingsEmployeeTable").innerHTML=html
-
-}
-
-renderEmployeesSettings()
 </script>
 </body>
 </html>
