@@ -769,13 +769,30 @@
       return `${h} soat ${m} daqiqa`;
     }
 
-    function calculateKpiMoney(score) {
-      if (score >= 90) return 560000;
-      if (score >= 80) return 420000;
-      if (score >= 70) return 280000;
-      return 0;
-    }
+    function calculateEmployeeKpi(employee, score){
 
+if(employee.kpi=="old"){
+
+if(score>=90) return 560000
+if(score>=80) return 420000
+if(score>=70) return 280000
+return 0
+
+}
+
+if(employee.kpi=="new"){
+
+let penalty=100-score
+
+if(penalty<=10) return 400000
+if(penalty<=20) return 300000
+if(penalty<=30) return 210000
+
+return 0
+
+}
+
+}
     function formatMoney(value) {
       return value.toLocaleString("uz-UZ") + " UZS";
     }
