@@ -71,45 +71,68 @@
   <script src="js/supabase.js"></script>
 
   <script>
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+async function checkOfficeIP() {
+  const allowedIP = "185.203.239.27";
 
-      if (!email || !password) {
-        alert("Email va parolni kiriting");
-        return;
-      }
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
 
-      const { error } = await sb.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      try {
-        const profile = await getMyProfile();
-
-        if (!profile) {
-          alert("Profil topilmadi");
-          await sb.auth.signOut();
-          return;
-        }
-
-        if (profile.role === "admin") {
-          location.href = "admin.html";
-        } else {
-          location.href = "employee.html";
-        }
-      } catch (err) {
-        alert("Profilni olishda xatolik yuz berdi");
-        console.error(err);
-      }
+    if (data.ip !== allowedIP) {
+      document.body.innerHTML = `
+        <div style="font-family:Arial,sans-serif; text-align:center; margin-top:100px;">
+          <h2>Ruxsat yo‘q</h2>
+          <p>Bu tizimga faqat ishxona tarmog‘idan kirish mumkin.</p>
+        </div>
+      `;
+      throw new Error("IP blocked");
     }
-  </script>
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Email va parolni kiriting");
+    return;
+  }
+
+  const { error } = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  try {
+    const profile = await getMyProfile();
+
+    if (!profile) {
+      alert("Profil topilmadi");
+      await sb.auth.signOut();
+      return;
+    }
+
+    if (profile.role === "admin") {
+      location.href = "admin.html";
+    } else {
+      location.href = "employee.html";
+    }
+  } catch (err) {
+    alert("Siz faqat ishxonadagi Wifi yoki Kompyuteringiz orqali kirishingiz mumkin!");
+    console.error(err);
+  }
+}
+
+checkOfficeIP();
+</script>
 
 </body>
 </html>
