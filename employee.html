@@ -433,6 +433,10 @@
       <div class="hint">
         Bu bo‘limda faqat tanlangan oy ma’lumotlari chiqadi. Oy yangilanganda yangi oy tarixlari alohida ko‘rinadi.
       </div>
+      <div class="stat-box">
+  <h4>Kechikishlar (oy)</h4>
+  <p id="lateCount">0</p>
+</div>
     </div>
   </div>
 
@@ -929,6 +933,45 @@
     }
 
     init();
+  async function loadUser(){
+  const profile = await getMyProfile()
+  if(profile){
+    document.getElementById("userName").innerText =
+      profile.full_name || "Hodim"
+  }
+}
+  function updateTime(){
+  const now = new Date()
+  const h = String(now.getHours()).padStart(2,'0')
+  const m = String(now.getMinutes()).padStart(2,'0')
+
+  document.getElementById("time").innerText = `${h}:${m}`
+}
+
+setInterval(updateTime, 1000)
+updateTime()
+  async function loadLateCount(){
+  const user = await getCurrentUser()
+
+  const start = new Date()
+  start.setDate(1)
+
+  const { data, error } = await sb
+    .from("attendance")
+    .select("*")
+    .eq("user_id", user.id)
+    .gte("date", start.toISOString())
+
+  if(error){
+    console.error(error)
+    return
+  }
+
+  const late = data.filter(x => x.is_late).length
+
+  document.getElementById("lateCount").innerText = late
+}
+  
 </script>
 </body>
 </html>
