@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel | Nazorat tizimi</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <div class="lang-switch">
-  <button onclick="setLang('uz')">🇺🇿</button>
-  <button onclick="setLang('ru')">🇷🇺</button>
-</div>
   <style>
     * {
       box-sizing: border-box;
@@ -452,13 +448,19 @@
         flex-direction: column;
       }
     }
+    .lang-switch button {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 6px;
+}
   </style>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
       <div class="logo">Nazorat tizimi</div>
-      <div class="logo">
   <img src="logo.png" style="height:40px;">
 </div>
 
@@ -473,11 +475,17 @@
       <div class="topbar">
         <h1>Nazorat tizimi</h1>
 
-        <div class="topbar-right">
-          <span id="todayText" style="color:#6b7280; font-size:14px;"></span>
-          <button class="btn btn-danger" onclick="logout()">Chiqish</button>
-        </div>
-      </div>
+       <div class="topbar-right">
+  <span id="adminName" style="font-weight:600;"></span>
+  <span id="todayText" style="color:#6b7280; font-size:14px;"></span>
+
+  <div class="lang-switch">
+    <button onclick="setLang('uz')">🇺🇿</button>
+    <button onclick="setLang('ru')">🇷🇺</button>
+  </div>
+
+  <button class="btn btn-danger" onclick="logout()">Chiqish</button>
+</div>
 
       <div class="cards">
         <div class="stat-card">
@@ -1176,40 +1184,49 @@
     }
 
     async function init() {
-      try {
-        const user = await getCurrentUser();
+  try {
+    const user = await getCurrentUser();
 
-        if (!user) {
-          location.href = "login.html";
-          return;
-        }
-
-        const profile = await getMyProfile();
-
-        if (!profile || profile.role !== "admin") {
-          location.href = "login.html";
-          return;
-        }
-
-        const today = getTodayString();
-        document.getElementById("selectedDate").value = today;
-        document.getElementById("reportMonth").value = today.slice(0, 7);
-        document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(today);
-
-        await refreshSupabaseData();
-
-        renderHolidays();
-        renderDailyTable();
-        generateMonthlyReport();
-        renderEmployeesSettings();
-
-      } catch (error) {
-        console.error(error);
-        alert("Admin panelni yuklashda xatolik yuz berdi");
-      }
+    if (!user) {
+      location.href = "index.html";
+      return;
     }
 
+    const profile = await getMyProfile();
+
+    if (!profile || profile.role !== "admin") {
+      location.href = "index.html";
+      return;
+    }
+
+    await loadAdminName();
+
+    const today = getTodayString();
+    document.getElementById("selectedDate").value = today;
+    document.getElementById("reportMonth").value = today.slice(0, 7);
+    document.getElementById("todayText").innerText = "Bugun: " + formatDateHuman(today);
+
+    await refreshSupabaseData();
+
+    renderHolidays();
+    renderDailyTable();
+    generateMonthlyReport();
+    renderEmployeesSettings();
+
+  } catch (error) {
+    console.error(error);
+    alert("Admin panelni yuklashda xatolik yuz berdi");
+  }
+}
+
     init();
+     async function loadAdminName(){
+  const profile = await getMyProfile()
+  if(profile){
+    document.getElementById("adminName").innerText =
+      profile.full_name || "Admin"
+  }
+}
 </script>
 </body>
 </html>
