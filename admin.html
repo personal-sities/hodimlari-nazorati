@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel | Nazorat tizimi</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <div class="lang-switch">
+  <button onclick="setLang('uz')">🇺🇿</button>
+  <button onclick="setLang('ru')">🇷🇺</button>
+</div>
   <style>
     * {
       box-sizing: border-box;
@@ -691,6 +695,11 @@
     let attendanceData = {};
     let extraHolidays = [];
     let bonusAdjustments = JSON.parse(localStorage.getItem("bonusAdjustments") || "{}");
+
+    function setLang(lang){
+  localStorage.setItem("lang", lang)
+  location.reload()
+}
 
     // ===== UTILS =====
     function formatDateHuman(dateStr) {
