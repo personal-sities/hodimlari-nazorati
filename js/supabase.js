@@ -29,5 +29,5 @@ async function getMyProfile(){
 
 async function logoutUser(){
   await sb.auth.signOut();
-  location.href="login.html";
+  location.href="index.html";
 }
