@@ -441,6 +441,11 @@
     let currentProfile = null;
     let todayRecord = null;
 
+  function setLang(lang){
+  localStorage.setItem("lang", lang)
+  location.reload()
+}
+
     function getNow() {
       return new Date();
     }
